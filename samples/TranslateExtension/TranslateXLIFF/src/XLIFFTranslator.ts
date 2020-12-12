@@ -18,7 +18,7 @@ export class XLIFFTranslator {
     async translate(): Promise<void> {
         this.translationServiceApiKey = await this.getTranslationServiceApiKey();
 
-        if (util.isUndefined(this.translationServiceApiKey)) {
+        if (this.translationServiceApiKey === undefined) {
             console.log("Invalid translation service api key");
             vscode.window.showErrorMessage('Invalid translation service api key');
             return;
@@ -35,20 +35,20 @@ export class XLIFFTranslator {
 
     // Retrieve the translation service api key
     private async getTranslationServiceApiKey(): Promise<string | undefined> {
-        if (!util.isUndefined(this.translationServiceApiKey)) {
+        if (!(this.translationServiceApiKey === undefined)) {
             return this.translationServiceApiKey;
         }
 
         // Try to get the key from the configuration
         const key = vscode.workspace.getConfiguration().get<string>('XLIFFTranslator.apiKey');
-        if (!util.isUndefined(key)) {
+        if (!(key === undefined)) {
             return key;
         }
 
         // Ask the user for the key
         const result = await vscode.window.showInputBox({prompt: 'Enter the Translation Service API key'}        );
 
-        if (!util.isUndefined(result) && result.length === 0) {
+        if (!(result === undefined) && result.length === 0) {
             return undefined;
         }
 
@@ -70,13 +70,13 @@ export class XLIFFTranslator {
         }
 
         var sourceLanguage = fileElements[0].getAttribute('source-language');
-        if (util.isNull(sourceLanguage)) {
+        if (sourceLanguage === null) {
             this.logger.log('Error: Missing source language');
             return;
         }
 
         var targetLanguage = fileElements[0].getAttribute('target-language');
-        if (util.isNull(targetLanguage)) {
+        if (targetLanguage === null) {
             this.logger.log('Error: Missing target language');
             return;
         }
@@ -84,7 +84,7 @@ export class XLIFFTranslator {
         
         this.logger.log('Translating from source language '+ sourceLanguage +'to target language ' + targetLanguage);
         var translatedDocument = await this.translateSources(doc, sourceLanguage,targetLanguage);
-        if (util.isUndefined(translatedDocument)) {
+        if (translatedDocument === undefined) {
             return;
         }
 
@@ -128,13 +128,14 @@ export class XLIFFTranslator {
         var headers: trc.IHeaders = {};
         headers['Content-Type'] = 'application/json';
         headers['Ocp-Apim-Subscription-Key'] = this.translationServiceApiKey;
+        headers['Ocp-Apim-Subscription-Region'] = 'westeurope';
         var client = new httpm.HttpClient('xliffTranslator');
         var response = await client.post(url, sources, headers);
        
     // Handle the response
     var responseBody = await response.readBody();
     var jsonResponse = this.handleResponse(responseBody);
-    if (util.isUndefined(jsonResponse)) {
+    if (jsonResponse === undefined) {
         return;
     }
 
@@ -180,7 +181,7 @@ export class XLIFFTranslator {
             return undefined;
         }
 
-        if (!util.isNullOrUndefined(jsonResponse['error'])) {
+        if (!(jsonResponse['error'] == null || jsonResponse['error'] == undefined)) {
             console.log('Error calling the translation service:');
             console.log(jsonResponse['error']['message']);
             vscode.window.showErrorMessage('Error calling the translation service: ' + jsonResponse['error']['message']);
